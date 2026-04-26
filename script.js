@@ -26,6 +26,12 @@ document.addEventListener("DOMContentLoaded", (event) => {
         duration: 0.8,
         ease: "power3.out"
     }, "-=0.6")
+    .from(".hero-btn", {
+        y: 20,
+        opacity: 0,
+        duration: 0.8,
+        ease: "power3.out"
+    }, "-=0.6")
     .from(".hero-img", {
         y: 100,
         opacity: 0,
