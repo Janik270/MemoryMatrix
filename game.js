@@ -14,37 +14,60 @@ document.addEventListener("DOMContentLoaded", () => {
         leds.push(led);
     }
 
-    // === GAME LOGIC ===
-    const BASE_PALETTE = [
-        [255, 0, 0],     // Red
-        [0, 255, 0],     // Green
-        [0, 0, 255],     // Blue
-        [255, 255, 0],   // Yellow
-        [255, 0, 255],   // Magenta
-        [0, 255, 255],   // Cyan
-        [255, 128, 0],   // Orange
-        [128, 0, 255],   // Purple
-    ];
+    // === COLOR ENGINE ===
+    function hsv_to_rgb(h, s, v) {
+        let i = Math.floor(h * 6);
+        let f = (h * 6) - i;
+        let p = v * (1 - s);
+        let q = v * (1 - f * s);
+        let t = v * (1 - (1 - f) * s);
+        i %= 6;
+        let r, g, b;
+        if (i === 0) { r=v; g=t; b=p; }
+        else if (i === 1) { r=q; g=v; b=p; }
+        else if (i === 2) { r=p; g=v; b=t; }
+        else if (i === 3) { r=p; g=q; b=v; }
+        else if (i === 4) { r=t; g=p; b=v; }
+        else { r=v; g=p; b=q; }
+        return [Math.floor(r * 255), Math.floor(g * 255), Math.floor(b * 255)];
+    }
 
-    let gameState = "IDLE";
-    let targetColor = [0, 0, 0];
+    // ================= 1024 COLOR PALETTE =================
+    const PALETTE = [];
+    for(let i=0; i<1024; i++) {
+        PALETTE.push(hsv_to_rgb(i / 1024.0, 1.0, 1.0));
+    }
+
+    function getRandomTarget() {
+        return PALETTE[Math.floor(Math.random() * 1024)];
+    }
+
+    // === STATE ===
+    let hue = 0.0;
     let playerColor = [0, 0, 0];
-    let playerCoarseIdx = 0;
-    let fineChannel = 0; // 0=R, 1=G, 2=B
-    let memoryStart = 0;
-    let memoryTime = 3.0; // Seconds
-    let rating = 0;
+    let targetColor = [0, 0, 0];
 
+    let gameState = "BOOT";
+    let memoryStart = 0;
+    let memoryTime = 2.5;
+
+    let rating = 0;
     let deltaQueue = 0;
     let btnPressed = false;
+    
+    let lastInputTime = 0;
+    let standbyStage = 0;
+    let standbyStart = 0;
+    
+    let animStart = 0;
 
-    // Helpers
+    // === HELPERS ===
     function setPx(x, y, color) {
         if (x >= 0 && x < 8 && y >= 0 && y < 8) {
             const index = y * 8 + x;
-            const r = Math.min(255, Math.max(0, color[0]));
-            const g = Math.min(255, Math.max(0, color[1]));
-            const b = Math.min(255, Math.max(0, color[2]));
+            const r = color[0];
+            const g = color[1];
+            const b = color[2];
             
             // Apply color and glow
             if (r > 0 || g > 0 || b > 0) {
@@ -81,16 +104,39 @@ document.addEventListener("DOMContentLoaded", () => {
     }
 
     function calculateRating(dist) {
-        const maxDist = 442.0;
-        let score = Math.floor(8 * (1 - (dist / maxDist)));
+        const maxDist = 441.6;
+        let score = Math.round(8 * (1 - (dist / maxDist)));
         return Math.max(1, Math.min(8, score));
     }
 
-    function clamp(v) {
-        return Math.max(0, Math.min(255, Math.floor(v)));
+    function ratingColor(i, rating) {
+        if (i < rating) {
+            let t = i / 7.0;
+            return [Math.floor(255 * (1 - t)), Math.floor(255 * t), 0];
+        }
+        return [10, 10, 10];
     }
 
-    // Input Simulation
+    function standbyWave(t) {
+        const cx = 3.5, cy = 3.5;
+        const speed = 3.0;
+        for (let x = 0; x < 8; x++) {
+            for (let y = 0; y < 8; y++) {
+                let dx = x - cx;
+                let dy = y - cy;
+                let dist = Math.sqrt(dx*dx + dy*dy);
+                let pulse = Math.sin(dist - t * speed);
+                let v = Math.max(0, pulse) * Math.max(0, 1 - dist / 5);
+                
+                let colorIdx = Math.floor((dist * 30 + t * 80)) % 1024;
+                if (colorIdx < 0) colorIdx += 1024;
+                let color = PALETTE[colorIdx];
+                setPx(x, y, hsv_to_rgb(color[0] / 255.0, 1, v));
+            }
+        }
+    }
+
+    // === INPUT ===
     function onEncoderTurn(delta) {
         deltaQueue += delta;
     }
@@ -99,126 +145,173 @@ document.addEventListener("DOMContentLoaded", () => {
         btnPressed = true;
     }
 
-    // Event Listeners for UI
     encoderBtn.addEventListener('mousedown', onBtnPress);
     
     // Support mouse wheel over the rotary area or screen
     document.querySelector('.simulator-container').addEventListener('wheel', (e) => {
         // Debounce slightly to make selection easier
-        if (e.deltaY < 0) onEncoderTurn(-1);
-        else if (e.deltaY > 0) onEncoderTurn(1);
+        if (e.deltaY < 0) onEncoderTurn(1);
+        else if (e.deltaY > 0) onEncoderTurn(-1);
         e.preventDefault();
     }, { passive: false });
 
-    upBtn.addEventListener('mousedown', () => onEncoderTurn(-1));
-    downBtn.addEventListener('mousedown', () => onEncoderTurn(1));
+    upBtn.addEventListener('mousedown', () => onEncoderTurn(1));
+    downBtn.addEventListener('mousedown', () => onEncoderTurn(-1));
 
     // Keyboard support
     document.addEventListener('keydown', (e) => {
-        if (e.key === 'ArrowUp' || e.key === 'ArrowLeft') onEncoderTurn(-1);
-        if (e.key === 'ArrowDown' || e.key === 'ArrowRight') onEncoderTurn(1);
+        if (e.key === 'ArrowUp' || e.key === 'ArrowLeft') onEncoderTurn(1);
+        if (e.key === 'ArrowDown' || e.key === 'ArrowRight') onEncoderTurn(-1);
         if (e.key === 'Enter' || e.key === ' ') onBtnPress();
     });
 
-    // Game Loop
     let startTimestamp = null;
 
     function gameLoop(timestamp) {
-        if (!startTimestamp) startTimestamp = timestamp;
-        const now = (timestamp - startTimestamp) / 1000; // time in seconds
+        if (!startTimestamp) {
+            startTimestamp = timestamp;
+            lastInputTime = timestamp / 1000;
+            animStart = timestamp / 1000;
+        }
+        const now = (timestamp - startTimestamp) / 1000;
 
         let delta = deltaQueue;
         deltaQueue = 0;
         let btn = btnPressed;
         btnPressed = false;
 
+        if (delta || btn) {
+            lastInputTime = now;
+            standbyStage = 0;
+        }
+
+        // --- STANDBY ---
+        if (gameState !== "BOOT" && gameState !== "PERFECT" && now - lastInputTime > 60) {
+            if (standbyStage === 0) {
+                standbyStage = 1;
+                standbyStart = now;
+            }
+            if (standbyStage === 1) {
+                let t = now - standbyStart;
+                standbyWave(t);
+                if (t > 4) {
+                    clear();
+                    standbyStage = 2;
+                }
+            } else if (standbyStage === 2) {
+                clear();
+            }
+            requestAnimationFrame(gameLoop);
+            return; // Skip normal game logic
+        }
+
         clear();
 
+        // --- BOOT ---
+        if (gameState === "BOOT") {
+            let elapsed = now - animStart;
+            // 64 pixels, 0.01s per pixel = 0.64s total
+            let pxCount = Math.floor(elapsed / 0.01);
+            if (pxCount > 64) {
+                gameState = "IDLE";
+            } else {
+                for (let i = 0; i < pxCount; i++) {
+                    let index = (i * 8) % 1024;
+                    let x = i % 8;
+                    let y = Math.floor(i / 8);
+                    setPx(x, y, PALETTE[index]);
+                }
+            }
+        }
+
         // --- IDLE ---
-        if (gameState === "IDLE") {
-            const brightness = (Math.sin(now * 3) + 1) / 2 * 30 + 5;
-            for (let x = 2; x < 6; x++) {
-                for (let y = 2; y < 6; y++) {
-                    setPx(x, y, [brightness, brightness, brightness]);
+        else if (gameState === "IDLE") {
+            let glow = (Math.sin(now * 3) + 1) / 2 * 40;
+            let c = Math.floor(glow);
+            for (let x = 0; x < 8; x++) {
+                for (let y = 0; y < 8; y++) {
+                    setPx(x, y, [c, c, c]);
                 }
             }
 
             if (btn) {
-                targetColor = BASE_PALETTE[Math.floor(Math.random() * BASE_PALETTE.length)];
-                gameState = "MEMORY";
+                targetColor = getRandomTarget();
                 memoryStart = now;
+                gameState = "MEMORY";
             }
         }
-        
+
         // --- MEMORY ---
         else if (gameState === "MEMORY") {
-            const elapsed = now - memoryStart;
+            let elapsed = now - memoryStart;
+            drawRect(0, 0, 7, 7, targetColor);
+
+            let bar = Math.floor((1 - elapsed / memoryTime) * 8);
+            for (let x = 0; x < bar; x++) {
+                setPx(x, 7, [255, 255, 255]);
+            }
+
             if (elapsed >= memoryTime) {
+                hue = 0.0;
                 gameState = "COARSE";
-                playerCoarseIdx = 0;
-            } else {
-                drawRect(0, 0, 7, 7, targetColor);
             }
         }
 
         // --- COARSE ---
         else if (gameState === "COARSE") {
             if (delta) {
-                // Determine step sign
-                const step = delta > 0 ? 1 : -1;
-                playerCoarseIdx = (playerCoarseIdx + step) % BASE_PALETTE.length;
-                if (playerCoarseIdx < 0) playerCoarseIdx += BASE_PALETTE.length;
+                hue = (hue + delta * 0.02) % 1.0;
+                if (hue < 0) hue += 1.0;
             }
 
-            const candidate = BASE_PALETTE[playerCoarseIdx];
+            let candidate = hsv_to_rgb(hue, 1.0, 1.0);
 
-            for (let i = 0; i < BASE_PALETTE.length; i++) {
-                let dotColor = [...BASE_PALETTE[i]];
-                if (i === playerCoarseIdx) {
-                    const s = (Math.sin(now * 10) + 1) / 2;
-                    dotColor = dotColor.map(c => c * (0.5 + 0.5 * s));
-                }
-                setPx(i, 0, dotColor);
+            for (let x = 0; x < 8; x++) {
+                let h = (hue + (x - 4) * 0.02) % 1.0;
+                if (h < 0) h += 1.0;
+                setPx(x, 0, hsv_to_rgb(h, 1.0, 1.0));
             }
 
+            setPx(4, 0, [255, 255, 255]);
             drawRect(0, 2, 7, 7, candidate);
 
             if (btn) {
-                playerColor = [...candidate];
-                gameState = "FINE";
-                fineChannel = 0;
+                playerColor = candidate;
+                let dist = colorDistance(playerColor, targetColor);
+                rating = calculateRating(dist);
+
+                if (rating === 8) {
+                    gameState = "PERFECT";
+                    animStart = now;
+                } else {
+                    gameState = "RATING";
+                }
             }
         }
 
-        // --- FINE ---
-        else if (gameState === "FINE") {
-            if (delta) {
-                // Make wheel scroll a bit smoother, map 1 wheel tick to a small jump
-                const step = delta > 0 ? 1 : -1;
-                playerColor[fineChannel] = clamp(playerColor[fineChannel] + step * 8); 
-            }
-
-            for (let i = 0; i < 3; i++) {
-                let c = [[255, 0, 0], [0, 255, 0], [0, 0, 255]][i];
-                if (i === fineChannel) {
-                    if (Math.floor(now * 5) % 2 === 0) c = [255, 255, 255];
+        // --- PERFECT ---
+        else if (gameState === "PERFECT") {
+            let elapsed = now - animStart;
+            // 3 flashes of 0.2s each (0.1 on, 0.1 off)
+            if (elapsed < 0.6) {
+                let phase = elapsed % 0.2;
+                if (phase < 0.1) {
+                    drawRect(0, 0, 7, 7, [255, 255, 255]);
                 }
-                setPx(i + 2, 0, c);
-            }
-
-            const valWidth = Math.floor((playerColor[fineChannel] / 255) * 8);
-            for (let x = 0; x < valWidth; x++) {
-                setPx(x, 1, [[200,0,0], [0,200,0], [0,0,200]][fineChannel]);
-            }
-
-            drawRect(0, 3, 7, 7, playerColor);
-
-            if (btn) {
-                fineChannel++;
-                if (fineChannel > 2) {
-                    const dist = colorDistance(targetColor, playerColor);
-                    rating = calculateRating(dist);
+            } else {
+                // Rainbow sweep
+                let sweepElapsed = elapsed - 0.6;
+                // 25 iterations of 0.03s = 0.75s
+                let j = Math.floor(sweepElapsed / 0.03);
+                if (j >= 25) {
                     gameState = "RATING";
+                } else {
+                    for (let i = 0; i < 64; i++) {
+                        let colorIdx = (i * 10 + j) % 1024;
+                        let x = i % 8;
+                        let y = Math.floor(i / 8);
+                        setPx(x, y, PALETTE[colorIdx]);
+                    }
                 }
             }
         }
@@ -233,10 +326,9 @@ document.addEventListener("DOMContentLoaded", () => {
             }
 
             for (let i = 0; i < 8; i++) {
-                let c = [40, 40, 0];
-                if (i < rating) c = [255, 255, 0];
-                setPx(i, 6, c);
-                setPx(i, 7, c);
+                let rc = ratingColor(i, rating);
+                setPx(i, 6, rc);
+                setPx(i, 7, rc);
             }
 
             if (btn) {
