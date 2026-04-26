@@ -117,6 +117,19 @@ document.addEventListener("DOMContentLoaded", (event) => {
         });
     }
 
+    // Auto-play video on scroll
+    const explVideo = document.getElementById('explanation-video');
+    if (explVideo) {
+        ScrollTrigger.create({
+            trigger: explVideo,
+            start: "top 80%", // play when top of video hits 80% down the viewport
+            onEnter: () => explVideo.play().catch(e => console.log("Autoplay blocked")),
+            onLeave: () => explVideo.pause(),
+            onEnterBack: () => explVideo.play().catch(e => console.log("Autoplay blocked")),
+            onLeaveBack: () => explVideo.pause()
+        });
+    }
+
     // 3D Model Viewer Initialization
     const container = document.getElementById('3d-canvas-container');
     if (container && typeof THREE !== 'undefined') {
