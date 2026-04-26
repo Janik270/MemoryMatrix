@@ -1,0 +1,45 @@
+<!DOCTYPE html>
+<html lang="de">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Memory Matrix - Simulator</title>
+    <link rel="stylesheet" href="game.css">
+    <!-- Google Fonts -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;600;800&display=swap" rel="stylesheet">
+</head>
+<body>
+    <nav class="navbar">
+        <div class="logo">Memory Matrix</div>
+        <ul class="nav-links">
+            <li><a href="index.html">Zurück zur Übersicht</a></li>
+        </ul>
+    </nav>
+
+    <div class="simulator-container">
+        <div class="device-case">
+            <div class="device-screen">
+                <div id="led-matrix" class="led-matrix">
+                    <!-- LEDs will be injected by JS -->
+                </div>
+            </div>
+            
+            <div class="controls-area">
+                <div class="rotary-encoder-container">
+                    <button id="encoder-up" class="encoder-btn">▲</button>
+                    <button id="encoder-button" class="encoder-main-btn">PRESS</button>
+                    <button id="encoder-down" class="encoder-btn">▼</button>
+                </div>
+                <div class="controls-hint">
+                    Mausrad / Pfeile = Drehen<br>
+                    Klick = Bestätigen
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script src="game.js"></script>
+</body>
+</html>

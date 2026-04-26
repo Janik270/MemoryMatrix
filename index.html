@@ -1,0 +1,129 @@
+<!DOCTYPE html>
+<html lang="de">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Memory Matrix</title>
+    <link rel="stylesheet" href="style.css">
+    <!-- Google Fonts -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;600;800&display=swap" rel="stylesheet">
+    <!-- GSAP for Animations -->
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/gsap/3.12.5/gsap.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/gsap/3.12.5/ScrollTrigger.min.js"></script>
+</head>
+
+<body>
+    <nav class="navbar">
+        <div class="logo">Memory Matrix</div>
+        <ul class="nav-links">
+            <li><a href="#overview">Übersicht</a></li>
+            <li><a href="#features">Design</a></li>
+            <li><a href="#specs">Technik</a></li>
+            <li><a href="#model-viewer">3D Modell</a></li>
+            <li><a href="game.html" class="buy-btn">Simulator</a></li>
+        </ul>
+    </nav>
+
+    <section id="hero" class="hero">
+        <div class="hero-content">
+            <h1 class="hero-title">Memory Matrix</h1>
+            <p class="hero-subtitle">Unsere Inovation für Memory Matrix</p>
+            <p class="hero-price">Willkommen zur unserer Keynote</p>
+        </div>
+        <div class="hero-image-container">
+            <!-- Test image of Rabbit r1 -->
+            <img src="https://th.bing.com/th/id/OIP.LGAriQNa5IdT89dkL9O8vQHaE8?w=274&h=181&c=7&r=0&o=7&pid=1.7&rm=3"
+                alt="Memory Matrix / Rabbit r1" class="hero-img">
+        </div>
+    </section>
+
+    <section id="overview" class="overview section-dark">
+        <div class="container text-center">
+            <h2 class="section-title fade-up">Unser Produkt</h2>
+            <p class="section-text fade-up">Es ist ein Spiel für die Konzentration und lusst auf neues und
+                alles in einem ikonischen, kompakten Design.</p>
+        </div>
+    </section>
+
+    <section id="features" class="features section-light">
+        <div class="container">
+            <div class="feature-grid">
+                <div class="feature-text fade-right">
+                    <h2 class="section-title">Design von Rabbit r1.</h2>
+                    <p class="section-text">Unser Desing ist inspieriert von dem Ki Model Rabbit r1 aber mit unserm eigenen Touch.</p>
+                </div>
+                <div class="feature-image fade-left">
+                    <img src="https://cdn.vox-cdn.com/thumbor/P19PZ0sBkVGZk_6j19d4T_fQn0I=/0x0:2040x1360/1200x800/filters:focal(857x517:1183x843)/cdn.vox-cdn.com/uploads/chorus_image/image/73042456/246231_Rabbit_R1_review_agrin.0.jpg"
+                        alt="Design Detail">
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <section class="features section-dark">
+        <div class="container">
+            <div class="feature-grid reverse">
+                <div class="feature-text fade-left">
+                    <h2 class="section-title">Dein Leben. Dein Flow.</h2>
+                    <p class="section-text">Memory Matrix lernt von deinen Gewohnheiten und passt sich dynamisch an
+                        deinen Alltag an. Es ist nicht nur ein Gadget, es ist dein persönlicher Begleiter.</p>
+                </div>
+                <div class="feature-image fade-right">
+                    <img src="https://cdn.vox-cdn.com/thumbor/HwPEx4OqF_N5L_YvD4R2X3QYQkw=/0x0:2040x1360/1200x800/filters:focal(857x517:1183x843)/cdn.vox-cdn.com/uploads/chorus_image/image/73042457/246231_Rabbit_R1_review_agrin.1.jpg"
+                        alt="Lifestyle Detail">
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <section id="specs" class="specs section-light">
+        <div class="container text-center">
+            <h2 class="section-title fade-up">Technische Daten</h2>
+            <div class="specs-grid fade-up">
+                <div class="spec-item">
+                    <h3>Led Pannel</h3>
+                    <p>WS2812B-42</p>
+                </div>
+                <div class="spec-item">
+                    <h3>Chip</h3>
+                    <p>esp32 S2 mini</p>
+                </div>
+                <div class="spec-item">
+                    <h3>Gehäuse</h3>
+                    <p>3d Gedruckt</p>
+                </div>
+                <div class="spec-item">
+                    <h3>Batterie</h3>
+                    <p>Kommt Noch :)</p>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <section id="model-viewer" class="model-viewer section-dark">
+        <div class="container text-center">
+            <h2 class="section-title fade-up">3D Modell</h2>
+            <p class="section-text fade-up">Erkunde das Design interaktiv in 3D. Nutze die Maus zum Drehen und Zoomen.</p>
+            <div class="canvas-container fade-up" id="3d-canvas-container">
+                <!-- 3D Canvas will be injected here -->
+            </div>
+        </div>
+    </section>
+
+    <footer>
+        <div class="container text-center">
+            <p>&copy; 2026 Memory Matrix Inc. Alle Rechte vorbehalten. (von Janik und Alex)</p>
+        </div>
+    </footer>
+
+    <!-- Three.js for 3D Model -->
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/three@0.128.0/examples/js/controls/OrbitControls.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/three@0.128.0/examples/js/loaders/STLLoader.js"></script>
+    <script src="script.js"></script>
+</body>
+
+</html>
