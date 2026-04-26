@@ -1,0 +1,53 @@
+<!DOCTYPE html>
+<html lang="de">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Memory Matrix - Admin</title>
+    <link rel="stylesheet" href="admin.css">
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;600;800&display=swap" rel="stylesheet">
+    <link rel="icon" type="image/png" href="favicon.png">
+</head>
+<body>
+    <div id="login-container" class="container">
+        <div class="card">
+            <h2>Admin Login</h2>
+            <input type="password" id="password" placeholder="Passwort eingeben">
+            <button id="login-btn">Anmelden</button>
+            <p id="error-msg" class="error"></p>
+        </div>
+    </div>
+
+    <div id="dashboard-container" class="container" style="display: none;">
+        <nav class="admin-nav">
+            <h2>Memory Matrix Admin</h2>
+            <div>
+                <a href="index.html" class="nav-link">Zurück zur Seite</a>
+                <button id="logout-btn">Abmelden</button>
+            </div>
+        </nav>
+        
+        <div class="dashboard">
+            <div class="stat-card">
+                <h3>Gesamtaufrufe</h3>
+                <p id="total-visits" class="stat-number">0</p>
+            </div>
+            <div class="table-container">
+                <h3>Aufrufe pro Seite</h3>
+                <table id="pages-table">
+                    <thead>
+                        <tr>
+                            <th>Seite</th>
+                            <th>Aufrufe</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                    </tbody>
+                </table>
+            </div>
+        </div>
+    </div>
+
+    <script src="admin.js"></script>
+</body>
+</html>

@@ -2,15 +2,19 @@ version: '3.8'
 
 services:
   app:
-    image: nginx:alpine
+    build: .
     container_name: memory_matrix_web
     volumes:
-      - ./:/usr/share/nginx/html:ro
+      - ./:/app
+      - /app/node_modules
     networks:
       - web
     labels:
       caddy: memoryMatrix.hackerwerkstatt.de
       caddy.reverse_proxy: "{{upstreams 80}}"
+    environment:
+      - PORT=80
+      - ADMIN_PASSWORD=admin123
     restart: unless-stopped
 
 networks:
