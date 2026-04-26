@@ -38,10 +38,33 @@
                 <a href="game.html" class="hero-btn">Simulator Starten</a>
             </div>
         </div>
-        <div class="hero-image-container">
-            <!-- Test image of Rabbit r1 -->
-            <img src="https://th.bing.com/th/id/OIP.LGAriQNa5IdT89dkL9O8vQHaE8?w=274&h=181&c=7&r=0&o=7&pid=1.7&rm=3"
-                alt="Memory Matrix / Rabbit r1" class="hero-img">
+        <!-- Hero Image Slider -->
+        <div class="hero-slider">
+            <div class="slider-track">
+                <div class="slide active">
+                    <img src="https://th.bing.com/th/id/OIP.LGAriQNa5IdT89dkL9O8vQHaE8?w=800&h=530&c=7&r=0&o=7&pid=1.7&rm=3"
+                        alt="Memory Matrix – Ansicht 1" class="hero-img">
+                </div>
+                <div class="slide">
+                    <img src="https://gesu.de/index.php/s/tbACuT8oNbulURN/download"
+                        alt="Memory Matrix – Ansicht 2" class="hero-img">
+                </div>
+                <div class="slide">
+                    <img src="https://th.bing.com/th/id/OIP.LGAriQNa5IdT89dkL9O8vQHaE8?w=800&h=530&c=7&r=0&o=7&pid=1.7&rm=3"
+                        alt="Memory Matrix – Ansicht 3" class="hero-img" style="filter: hue-rotate(60deg) saturate(1.4);">
+                </div>
+            </div>
+
+            <!-- Navigation Arrows -->
+            <button class="slider-arrow slider-prev" id="sliderPrev" aria-label="Vorheriges Bild">&#8249;</button>
+            <button class="slider-arrow slider-next" id="sliderNext" aria-label="Nächstes Bild">&#8250;</button>
+
+            <!-- Dot Indicators -->
+            <div class="slider-dots" id="sliderDots">
+                <button class="slider-dot active" data-index="0" aria-label="Bild 1"></button>
+                <button class="slider-dot" data-index="1" aria-label="Bild 2"></button>
+                <button class="slider-dot" data-index="2" aria-label="Bild 3"></button>
+            </div>
         </div>
     </section>
 
@@ -137,6 +160,59 @@
     <script src="https://cdn.jsdelivr.net/npm/three@0.128.0/examples/js/controls/OrbitControls.js"></script>
     <script src="https://cdn.jsdelivr.net/npm/three@0.128.0/examples/js/loaders/STLLoader.js"></script>
     <script src="script.js"></script>
+
+    <!-- Hero Image Slider Logic -->
+    <script>
+    (function () {
+        const slides = document.querySelectorAll('.slide');
+        const dots   = document.querySelectorAll('.slider-dot');
+        let current  = 0;
+        let timer;
+
+        function goTo(index) {
+            slides[current].classList.remove('active');
+            dots[current].classList.remove('active');
+            current = (index + slides.length) % slides.length;
+            slides[current].classList.add('active');
+            dots[current].classList.add('active');
+        }
+
+        function next() { goTo(current + 1); }
+        function prev() { goTo(current - 1); }
+
+        function startAuto() {
+            timer = setInterval(next, 4000);
+        }
+
+        function stopAuto() {
+            clearInterval(timer);
+        }
+
+        document.getElementById('sliderNext').addEventListener('click', function () { stopAuto(); next(); startAuto(); });
+        document.getElementById('sliderPrev').addEventListener('click', function () { stopAuto(); prev(); startAuto(); });
+
+        dots.forEach(function (dot) {
+            dot.addEventListener('click', function () {
+                stopAuto();
+                goTo(parseInt(this.dataset.index));
+                startAuto();
+            });
+        });
+
+        // Pause on hover
+        const slider = document.querySelector('.hero-slider');
+        slider.addEventListener('mouseenter', stopAuto);
+        slider.addEventListener('mouseleave', startAuto);
+
+        // Keyboard navigation
+        document.addEventListener('keydown', function (e) {
+            if (e.key === 'ArrowLeft')  { stopAuto(); prev(); startAuto(); }
+            if (e.key === 'ArrowRight') { stopAuto(); next(); startAuto(); }
+        });
+
+        startAuto();
+    })();
+    </script>
 </body>
 
 </html>
